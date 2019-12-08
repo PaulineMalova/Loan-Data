@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Loan Repayment Report</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/TableExport/4.0.11/css/tableexport.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/TableExport/4.0.11/js/tableexport.min.js"></script>
+
+    <style>
+        body {
+            width: 800px;
+            margin: 0 auto;
+        }
+
+        a {
+            text-decoration: none;
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Loan Repayment Report</h2>
+
+    <table class="table table-striped table-bordered table-condensed table-hover">
+
+
+        <tr>
+            <th>Customer Id</th>
+            <th>Repayment Date</th>
+            <th>Loan Code</th>
+            <th>Repayment Status</th>
+
+        </tr>
+
+        {% for repayment in repayments %}
+
+        <tr>
+            <td>{{ repayment.0 }}</td>
+            <td>{{ repayment.1 }}</td>
+            <td>{{ repayment.2 }}</td>
+            <td>{{ repayment.3 }}</td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    </table>
+    <a href="{% url 'repayments_pdf_report' %}"><button>Export to pdf</button></a>
+
+    <script>
+        $("table").tableExport();
+    </script>
+
+</body>
+
+</html>

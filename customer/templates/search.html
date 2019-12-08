@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Disbursed Loan Details</title>
+    <title>Customer Details</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
@@ -18,28 +18,28 @@
 </head>
 
 <body>
-    <h2>Disbursed Loans Information</h2>
+    <h2>Customer Demographic Information</h2>
+
+    <form action="{% url 'search_results' %}" method="get">
+        <input name="q" type="text" placeholder="Search...">
+    </form>
 
     <table class="table table-striped table-bordered table-condensed table-hover">
 
 
         <tr>
             <th>Customer Id</th>
-            <th>Loan Date</th>
-            <th>Due Date</th>
-            <th>Loan Code</th>
-            <th>Loan Amount</th>
+            <th>Customer Station</th>
+            <th>Station Name</th>
 
         </tr>
 
-        {% for loan in loan_details %}
+        {% for search in search_results %}
 
         <tr>
-            <td>{{ loan.0 }}</td>
-            <td>{{ loan.1 }}</td>
-            <td>{{ loan.2 }}</td>
-            <td>{{ loan.3 }}</td>
-            <td>{{ loan.4 }}</td>
+            <td>{{ search.0 }}</td>
+            <td>{{ search.1 }}</td>
+            <td>{{ search.2 }}</td>
 
         </tr>
 
