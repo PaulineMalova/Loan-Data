@@ -2,10 +2,16 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render
-from django.views.generic import View
-from render import Render
+from easy_pdf.views import PDFTemplateView
+from django.http import HttpResponse
 
 import mysql.connector
+import xlwt
+
+customer_details = []
+customers = []
+loans = []
+repayments = []
 
 
 def customer_data(request):
@@ -17,7 +23,7 @@ def customer_data(request):
     )
 
     cursor = db.cursor()
-    customer_details = []
+
     if request.method == "GET":
         query = "SELECT lo.`customer_id`, lo.`customer_station`, cs.`station_name`  FROM `loans` AS lo INNER JOIN `customer_stations` AS cs ON lo.`customer_station` = cs.`station_id`;"
         cursor.execute(query)
@@ -25,10 +31,6 @@ def customer_data(request):
 
         for row in customer_data:
             customer_details.append(row)
-
-        q = request.GET.get("q", None)
-        if q:
-            search_results(customer_data, q)
 
         cursor.close()
 
@@ -41,13 +43,14 @@ def customer_data(request):
     )
 
 
-def search_results(values, q):
+def search_results(request):
     search_results = []
-    for row in values:
-        if q in row:
-            search_results.append(row)
-        else:
-            return "Record does not exist"
+    q = request.GET.get("q", None)
+    if q:
+        for x in customer_details:
+            if q in x:
+                search_results.append(x)
+
     return render(request, "search.html", {"search_results": search_results})
 
 
@@ -120,13 +123,26 @@ def process_customers_report(request):
             )
 
             cursor = db.cursor()
-            customers = []
+            
 
-            query = "SELECT lo.`customer_id`, lo.`customer_station`, cs.`station_name`  FROM `loans` AS lo INNER JOIN `customer_stations` AS cs ON lo.`customer_station` = cs.`station_id` WHERE lo.`loan_date` BETWEEN 'rangefrom' AND 'rangeto';"
-            cursor.execute(query)
-            customers_data = cursor.fetchall()
-            for row in customers_data:
-                customers.append(row)
+            try:
+                xrange
+            except NameError:
+                xrange = range
+
+            cursor.execute("SELECT count(*) FROM loans")
+
+            count = cursor.fetchone()[0]
+            batch_size = 100
+
+            for offset in xrange(0, count, batch_size):
+                query = (
+                    "SELECT lo.`customer_id`, lo.`customer_station`, cs.`station_name`  FROM `loans` AS lo INNER JOIN `customer_stations` AS cs ON lo.`customer_station` = cs.`station_id` WHERE lo.`loan_date` BETWEEN %s AND %s LIMIT %s OFFSET %s;",
+                    (rangefrom, rangeto, batch_size, offset),
+                )
+                cursor.execute(query)
+                for row in cursor:
+                    customers.append(row)
 
             cursor.close()
 
@@ -137,8 +153,6 @@ def process_customers_report(request):
             return render(
                 request, "customers_report.html", {"customers": customers}
             )
-        # else:
-        #     return "No data found for that range. Kindly pick another range"
 
     return render(request, "process_customers_report.html")
 
@@ -156,13 +170,25 @@ def process_loans_report(request):
             )
 
             cursor = db.cursor()
-            loans = []
 
-            loan_query = "SELECT lo.`customer_id`, lo.`loan_date`, lo.`loan_code`, lo.`loan_amount` FROM `loans` AS lo WHERE lo.`loan_date` BETWEEN 'rangefrom' AND 'rangeto';"
-            cursor.execute(loan_query)
-            loans_data = cursor.fetchall()
-            for row in loans_data:
-                loans.append(row)
+            try:
+                xrange
+            except NameError:
+                xrange = range
+
+            cursor.execute("SELECT count(*) FROM loans")
+
+            count = cursor.fetchone()[0]
+            batch_size = 100
+
+            for offset in xrange(0, count, batch_size):
+                loan_query = (
+                    "SELECT lo.`customer_id`, lo.`loan_date`, lo.`loan_code`, lo.`loan_amount` FROM `loans` AS lo WHERE lo.`loan_date` BETWEEN %s AND %s LIMIT %s OFFSET %s;",
+                    (rangefrom, rangeto, batch_size, offset),
+                )
+                cursor.execute(loan_query)
+                for row in cursor:
+                    loans.append(row)
 
             cursor.close()
 
@@ -188,13 +214,25 @@ def process_repayments_report(request):
             )
 
             cursor = db.cursor()
-            repayments = []
 
-            repayment_query = "SELECT lo.`customer_id`, lo.`due_date`, lo.`loan_code`, ls.`loan_status` FROM `loans` AS lo INNER JOIN `loan_status` AS ls ON lo.`loan_status` = ls.`status_id` WHERE lo.`loan_date` BETWEEN 'rangefrom' AND 'rangeto';"
-            cursor.execute(repayment_query)
-            repayments_data = cursor.fetchall()
-            for row in repayments_data:
-                repayments.append(row)
+            try:
+                xrange
+            except NameError:
+                xrange = range
+
+            cursor.execute("SELECT count(*) FROM loans")
+
+            count = cursor.fetchone()[0]
+            batch_size = 100
+
+            for offset in xrange(0, count, batch_size):
+                repayment_query = (
+                    "SELECT lo.`customer_id`, lo.`due_date`, lo.`loan_code`, ls.`loan_status` FROM `loans` AS lo INNER JOIN `loan_status` AS ls ON lo.`loan_status` = ls.`status_id` WHERE lo.`loan_date` BETWEEN %s AND %s LIMIT %s OFFSET %s;",
+                    (rangefrom, rangeto, batch_size, offset),
+                )
+                cursor.execute(repayment_query)
+                for row in cursor:
+                    repayments.append(row)
 
             cursor.close()
 
@@ -209,16 +247,112 @@ def process_repayments_report(request):
     return render(request, "process_repayments_report.html")
 
 
-class Pdf(View):
-    def customers_pdf_report(self, request):
-        customers_html = templates.customers_report.html
-        return Render.render(customers_html)
+class CustomerPDFView(PDFTemplateView):
+    template_name = "customers_report.html"
 
-    def loans_pdf_report(self, request):
-        loans_html = templates.loans_report.html
-        return Render.render(loans_html)
+    def get_context_data(self, **kwargs):
+        context = super(CustomerPDFView, self).get_context_data(**kwargs)
+        return context
 
-    def repayments_pdf_report(self, request):
-        repayments_html = templates.repayments_report.html
-        return Render.render(repayments_html)
 
+class LoanPDFView(PDFTemplateView):
+    template_name = "loans_report.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(LoanPDFView, self).get_context_data(**kwargs)
+        return context
+
+
+class RepaymentPDFView(PDFTemplateView):
+    template_name = "repayments_report.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(RepaymentPDFView, self).get_context_data(**kwargs)
+        return context
+
+def excel_customers_report(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'inline; filename="Registered Customers.xls"'
+
+    excel_file = xlwt.Workbook(encoding='utf-8')
+    excel_sheet = excel_file.add_sheet('Registered Customers')
+
+    row_num = 0
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns = ['Customer id', 'Customer station', 'Station name',]
+
+    for col_num in range(len(columns)):
+        excel_sheet.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style = xlwt.XFStyle()
+
+    rows = customers
+    for row in rows:
+        row_num += 1
+        for col_num in range(len(row)):
+            excel_sheet.write(row_num, col_num, row[col_num], font_style)
+
+
+    excel_file.save(response)
+    return response
+
+def excel_loans_report(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'inline; filename="Disbursed Loans.xls"'
+
+    excel_file = xlwt.Workbook(encoding='utf-8')
+    excel_sheet = excel_file.add_sheet('Disbursed Loans')
+
+    row_num = 0
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns = ['Customer id', 'Loan date', 'Loan code', 'Loan amount',]
+
+    for col_num in range(len(columns)):
+        excel_sheet.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style = xlwt.XFStyle()
+
+    rows = loans
+    for row in rows:
+        row_num += 1
+        for col_num in range(len(row)):
+            excel_sheet.write(row_num, col_num, row[col_num], font_style)
+
+
+    excel_file.save(response)
+    return response
+
+def excel_repayments_report(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'inline; filename="Repayments.xls"'
+
+    excel_file = xlwt.Workbook(encoding='utf-8')
+    excel_sheet = excel_file.add_sheet('Repayments')
+
+    row_num = 0
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns = ['Customer id', 'Due date', 'Loan code', 'Loan status',]
+
+    for col_num in range(len(columns)):
+        excel_sheet.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style = xlwt.XFStyle()
+
+    rows = repayments
+    for row in rows:
+        row_num += 1
+        for col_num in range(len(row)):
+            excel_sheet.write(row_num, col_num, row[col_num], font_style)
+
+
+    excel_file.save(response)
+    return response
