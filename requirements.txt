@@ -3,7 +3,7 @@ CairoSVG==2.4.2
 cffi==1.13.2
 cssselect2==0.2.2
 defusedxml==0.6.0
-Django==2.0
+Django==2.0.12
 django-easy-pdf==0.1.1
 html5lib==1.0.1
 mysql-connector-python==8.0.18
