@@ -13,6 +13,7 @@
         body {
             width: 800px;
             margin: 0 auto;
+            background-color: #eee;
         }
 
         a {
@@ -27,8 +28,10 @@
 
     <form method="get">
         <input name="q" type="text" placeholder="Search...">
-        <a href="{% url 'search_results' %}"><button>Search</button></a>
+        <a href="{% url 'customer:search_results' %}"><button>Search</button></a>
     </form>
+
+    <br>
 
     <table class="table table-striped table-bordered table-condensed table-hover">
 

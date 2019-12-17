@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Financial Data</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: navy;
+        }
+
+        .center {
+            width: 80%;
+            height: 80%;
+            margin: 5% auto;
+        }
+
+        .circle {
+            background-color: #eee;
+            width: 20%;
+            border-radius: 50%;
+            height: 0;
+            padding-bottom: 20%;
+            /*setting height and width to be equal*/
+            float: left;
+            font: bold 20px Helvetica, Verdana, Tahoma;
+            text-align: center;
+            position: relative;
+            margin-bottom: 9%;
+        }
+
+        .circle1,
+        .circle2,
+        .circle4,
+        .circle5 {
+            margin-right: 20%;
+        }
+
+        .circle .text {
+            width: 100%;
+            margin: 0 auto;
+            display: table-cell;
+            vertical-align: middle;
+            position: absolute;
+            top: 45%;
+        }
+
+        .circle a {
+            text-decoration: none;
+            color: navy;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="center">
+        <div class="circle1 circle ">
+            <a class="text" href="{% url 'customer:customer_data' %}">Customer data</a>
+        </div>
+        <div class="circle2 circle ">
+            <a class="text" href="{% url 'customer:loan_data' %}">Loan data</a>
+        </div>
+        <div class="circle3 circle ">
+            <a class="text" href="{% url 'customer:repayment_data' %}">Repayment data</a>
+        </div>
+        <div class="circle4 circle ">
+            <a class="text" href="{% url 'customer:process_customers_report' %}">Generate Customer Report</a>
+        </div>
+        <div class="circle5 circle ">
+            <a class="text" href="{% url 'customer:process_loans_report' %}">Generate Loan Report</a>
+        </div>
+        <div class="circle6 circle ">
+            <a class="text" href="{% url 'customer:process_repayments_report' %}">Generate Repayment Report</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

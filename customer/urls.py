@@ -1,3 +1,5 @@
+app_name = "customer"
+
 from django.conf.urls import url
 from .views import (
     customer_data,
@@ -42,8 +44,18 @@ urlpatterns = [
         RepaymentPDFView.as_view(),
         name="repayments_pdf_report",
     ),
-    url(r"^customers_excel_report/", excel_customers_report, name="customers_excel_report"),
-    url(r"^loans_excel_report/", excel_loans_report, name="loans_excel_report"),
-    url(r"^repayments_excel_report/", excel_repayments_report, name="repayments_excel_report"),
+    url(
+        r"^customers_excel_report/",
+        excel_customers_report,
+        name="customers_excel_report",
+    ),
+    url(
+        r"^loans_excel_report/", excel_loans_report, name="loans_excel_report"
+    ),
+    url(
+        r"^repayments_excel_report/",
+        excel_repayments_report,
+        name="repayments_excel_report",
+    ),
 ]
 

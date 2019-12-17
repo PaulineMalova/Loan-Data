@@ -20,24 +20,52 @@
         body {
             width: 800px;
             margin: 0 auto;
+            background-color: navy;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        .main {
+            height: 70%;
+            width: 100%;
+            display: table;
+        }
+
+        .wrapper {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        h4,
+        label {
+            color: #eee;
         }
 
         a {
             text-decoration: none;
-            color: #000;
+            color: navy;
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    <h4>Customers Registered Report</h4>
+    <div class="main">
+        <div class="wrapper">
+            <h4><b>Process Customers Registered Report</b></h4>
 
-    <form method="get">
-        <label>Select date range for the report between January 2017 and January 2018</label><br>
-        <input name="rangefrom" type="date" data-date-inline-picker="true">
-        <input name="rangeto" type="date" data-date-inline-picker="true">
-        <a href="{% url 'process_customers_report' %}"><button>Generate report</button></a>
-    </form>
+            <form method="get">
+                <label>Select date range for the report between January 2017 and January 2018</label><br><br>
+                <input name="rangefrom" type="date" data-date-inline-picker="true"><br><br>
+                <input name="rangeto" type="date" data-date-inline-picker="true"><br><br>
+                <a href="{% url 'customer:process_customers_report' %}"><button>Generate report</button></a>
+            </form>
+
+        </div>
+    </div>
 
 </body>
 

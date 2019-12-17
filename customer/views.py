@@ -44,12 +44,13 @@ def customer_data(request):
 
 
 def search_results(request):
-    search_results = []
-    q = request.GET.get("q", None)
-    if q:
-        for x in customer_details:
-            if q in x:
-                search_results.append(x)
+    if request.method == "GET":
+        search_results = []
+        q = request.GET.get("q", None)
+        if q:
+            for x in customer_details:
+                if q in x:
+                    search_results.append(x)
 
     return render(request, "search.html", {"search_results": search_results})
 
@@ -123,26 +124,14 @@ def process_customers_report(request):
             )
 
             cursor = db.cursor()
-            
 
-            try:
-                xrange
-            except NameError:
-                xrange = range
-
-            cursor.execute("SELECT count(*) FROM loans")
-
-            count = cursor.fetchone()[0]
-            batch_size = 100
-
-            for offset in xrange(0, count, batch_size):
-                query = (
-                    "SELECT lo.`customer_id`, lo.`customer_station`, cs.`station_name`  FROM `loans` AS lo INNER JOIN `customer_stations` AS cs ON lo.`customer_station` = cs.`station_id` WHERE lo.`loan_date` BETWEEN %s AND %s LIMIT %s OFFSET %s;",
-                    (rangefrom, rangeto, batch_size, offset),
-                )
-                cursor.execute(query)
-                for row in cursor:
-                    customers.append(row)
+            query = (
+                "SELECT lo.`customer_id`, lo.`customer_station`, cs.`station_name`  FROM `loans` AS lo INNER JOIN `customer_stations` AS cs ON lo.`customer_station` = cs.`station_id` WHERE lo.`loan_date` BETWEEN %s AND %s;",
+                (rangefrom, rangeto),
+            )
+            cursor.execute(*query)
+            for row in cursor:
+                customers.append(row)
 
             cursor.close()
 
@@ -171,24 +160,13 @@ def process_loans_report(request):
 
             cursor = db.cursor()
 
-            try:
-                xrange
-            except NameError:
-                xrange = range
-
-            cursor.execute("SELECT count(*) FROM loans")
-
-            count = cursor.fetchone()[0]
-            batch_size = 100
-
-            for offset in xrange(0, count, batch_size):
-                loan_query = (
-                    "SELECT lo.`customer_id`, lo.`loan_date`, lo.`loan_code`, lo.`loan_amount` FROM `loans` AS lo WHERE lo.`loan_date` BETWEEN %s AND %s LIMIT %s OFFSET %s;",
-                    (rangefrom, rangeto, batch_size, offset),
-                )
-                cursor.execute(loan_query)
-                for row in cursor:
-                    loans.append(row)
+            loan_query = (
+                "SELECT lo.`customer_id`, lo.`loan_date`, lo.`loan_code`, lo.`loan_amount` FROM `loans` AS lo WHERE lo.`loan_date` BETWEEN %s AND %s;",
+                (rangefrom, rangeto),
+            )
+            cursor.execute(*loan_query)
+            for row in cursor:
+                loans.append(row)
 
             cursor.close()
 
@@ -215,24 +193,15 @@ def process_repayments_report(request):
 
             cursor = db.cursor()
 
-            try:
-                xrange
-            except NameError:
-                xrange = range
+            repayment_query = (
+                "SELECT lo.`customer_id`, lo.`due_date`, lo.`loan_code`, ls.`loan_status` FROM `loans` AS lo INNER JOIN `loan_status` AS ls ON lo.`loan_status` = ls.`status_id` WHERE lo.`loan_date` BETWEEN %s AND %s LIMIT %s OFFSET %s;",
+                (rangefrom, rangeto, batch_size, offset),
+            )
 
-            cursor.execute("SELECT count(*) FROM loans")
+            cursor.execute(*repayment_query)
 
-            count = cursor.fetchone()[0]
-            batch_size = 100
-
-            for offset in xrange(0, count, batch_size):
-                repayment_query = (
-                    "SELECT lo.`customer_id`, lo.`due_date`, lo.`loan_code`, ls.`loan_status` FROM `loans` AS lo INNER JOIN `loan_status` AS ls ON lo.`loan_status` = ls.`status_id` WHERE lo.`loan_date` BETWEEN %s AND %s LIMIT %s OFFSET %s;",
-                    (rangefrom, rangeto, batch_size, offset),
-                )
-                cursor.execute(repayment_query)
-                for row in cursor:
-                    repayments.append(row)
+            for row in cursor:
+                repayments.append(row)
 
             cursor.close()
 
